@@ -105,7 +105,7 @@
   }
   .lookbook-pin.is-active .tooltip-top,
   .lookbook-pin:hover .tooltip-top {
-    transform: translate(-50%, 0) scale(1);
+    transform: translate(-45%, 0) scale(1);
   }
 
   .tooltip-bottom {
@@ -146,13 +146,22 @@
       bottom: 24px !important;
       top: auto !important;
       right: auto !important;
-      transform: translate(-50%, 20px) !important;
+      transform: translate(-20%, 20px) !important;
       width: calc(100vw - 32px);
       max-width: 340px;
       z-index: 50;
     }
+    
     .lookbook-pin.is-active .lookbook-tooltip {
-      transform: translate(-50%, 0) !important;
+      transform: translate(-20%, 0) !important;
+    }
+    .lookbook-pin:hover,
+  .lookbook-pin.is-active .lookbook-tooltip{
+            transform: translate(-78%, 31%) !important;
+    z-index: 30;
+  }
+  #pin-hotspot_EMdtka .lookbook-tooltip{
+      transform: translate(-20%, 20px) !important;
     }
     .lookbook-pin:hover .lookbook-tooltip {
       /* Disable hover tooltip trigger on mobile, rely on click/active class */
