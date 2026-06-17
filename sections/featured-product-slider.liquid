@@ -74,6 +74,7 @@
 
   .slick-track {
     display: flex !important;
+    gap: {{ section.settings.card_gap | default: 16 | divided_by: 2 }}px;
   }
 
   /* Prevent card content breaking */
@@ -82,6 +83,7 @@
     display: flex !important;
     flex-direction: column;
     justify-content: space-between;
+    padding-bottom: 10px;
   }
 
   .product-card-hover:hover .product-card-image {
@@ -127,7 +129,7 @@
 {%- endstyle -%}
 
 <section class="product-slider-container py-12 px-4 md:px-8 lg:px-16 overflow-hidden relative" id="shopify-section-{{ section.id }}">
-  <div class="max-w-7xl mx-auto">
+  <div class="mx-auto">
     
     <!-- Section Header -->
     <div class="flex flex-col md:flex-row md:items-end justify-between mb-8 gap-4">
