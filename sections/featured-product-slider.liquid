@@ -1,0 +1,516 @@
+{% comment %}
+  Featured Product Slider Section (slick-slider integrated version)
+  Tailored to Shopify with premium UI, Slick Slider, and specified color palette.
+{% endcomment %}
+
+<!-- Load Slick Slider CSS CDN -->
+<link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/slick-carousel/1.8.1/slick.min.css"/>
+
+<!-- Load jQuery and Slick JS CDNs -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js" defer></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/slick-carousel/1.8.1/slick.min.js" defer></script>
+
+<!-- Load Tailwind CSS CDN and Configure Palette -->
+<script src="https://cdn.tailwindcss.com" defer></script>
+<script>
+  window.addEventListener('DOMContentLoaded', () => {
+    if (window.tailwind) {
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              sliderbg: '{{ section.settings.bg_color }}',
+              slidertext: '{{ section.settings.text_color }}',
+              slideraccent: '{{ section.settings.accent_main_color }}',
+              sliderhover: '{{ section.settings.accent_hover_color }}',
+              paletteYellow: '#FFF200',
+              paletteAmber: '#FEBD00',
+              paletteOrange: '#F46A0F',
+              palettePink: '#FF4FFF',
+              paletteRed: '#FC3850',
+              paletteGreen: '#379F2B',
+              paletteDark: '#101828',
+              paletteRuby: '#CD194B',
+            }
+          }
+        }
+      };
+    }
+  });
+</script>
+
+{%- style -%}
+  :root {
+    --slider-bg-primary: {{ section.settings.bg_color }};
+    --slider-text-primary: {{ section.settings.text_color }};
+    --slider-accent-main: {{ section.settings.accent_main_color }}; /* #003C40 */
+    --slider-accent-hover: {{ section.settings.accent_hover_color }}; /* #59B5DD */
+    --slider-accent-yellow: #FFF200;
+    --slider-accent-amber: #FEBD00;
+    --slider-accent-orange: #F46A0F;
+    --slider-accent-pink: #FF4FFF;
+    --slider-accent-red: #FC3850;
+    --slider-accent-green: #379F2B;
+    --slider-accent-dark: #101828;
+    --slider-accent-ruby: #CD194B;
+  }
+
+  .product-slider-container {
+    background-color: var(--slider-bg-primary);
+    color: var(--slider-text-primary);
+  }
+
+  /* Slick Custom Styling */
+  .slick-list {
+    margin: 0 -{{ section.settings.card_gap | default: 16 | divided_by: 2 }}px;
+    padding: 8px 0;
+  }
+
+  .slick-slide {
+    padding: 0 {{ section.settings.card_gap | default: 16 | divided_by: 2 }}px;
+    height: auto !important;
+    display: flex !important;
+  }
+
+  .slick-track {
+    display: flex !important;
+  }
+
+  /* Prevent card content breaking */
+  .product-card-inner {
+    width: 100%;
+    display: flex !important;
+    flex-direction: column;
+    justify-content: space-between;
+  }
+
+  .product-card-hover:hover .product-card-image {
+    transform: scale(1.06);
+  }
+
+  .slider-btn:disabled {
+    opacity: 0.35;
+    cursor: not-allowed;
+  }
+
+  /* Style Slick Dots to match custom color scheme */
+  .slider-dots-container .slick-dots {
+    display: flex !important;
+    justify-content: center;
+    gap: 8px;
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+  .slider-dots-container .slick-dots li {
+    display: inline-block;
+  }
+  .slider-dots-container .slick-dots li button {
+    font-size: 0;
+    line-height: 0;
+    display: block;
+    width: 10px;
+    height: 10px;
+    padding: 5px;
+    cursor: pointer;
+    color: transparent;
+    border: 0;
+    outline: none;
+    background: #d1d5db;
+    border-radius: 9999px;
+    transition: all 0.3s ease;
+  }
+  .slider-dots-container .slick-dots li.slick-active button {
+    background-color: var(--slider-accent-main);
+    width: 24px;
+  }
+{%- endstyle -%}
+
+<section class="product-slider-container py-12 px-4 md:px-8 lg:px-16 overflow-hidden relative" id="shopify-section-{{ section.id }}">
+  <div class="max-w-7xl mx-auto">
+    
+    <!-- Section Header -->
+    <div class="flex flex-col md:flex-row md:items-end justify-between mb-8 gap-4">
+      <div>
+        {%- if section.settings.subtitle != blank -%}
+          <span class="text-xs md:text-sm font-semibold tracking-wider uppercase" style="color: var(--slider-accent-hover);">
+            {{ section.settings.subtitle }}
+          </span>
+        {%- endif -%}
+        <h2 class="text-3xl md:text-4xl font-extrabold tracking-tight mt-1" style="color: var(--slider-accent-dark);">
+          {{ section.settings.title | default: "Featured Products" }}
+        </h2>
+      </div>
+      
+      <!-- Desktop Navigation Controls -->
+      <div class="flex items-center gap-3">
+        <button 
+          type="button"
+          class="slider-btn prev-btn flex items-center justify-center w-10 h-10 rounded-full border transition-all duration-300 hover:scale-105"
+          style="border-color: var(--slider-accent-main); color: var(--slider-accent-main);"
+          aria-label="Previous Products"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-5 h-5">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
+          </svg>
+        </button>
+        <button 
+          type="button"
+          class="slider-btn next-btn flex items-center justify-center w-10 h-10 rounded-full border transition-all duration-300 hover:scale-105"
+          style="border-color: var(--slider-accent-main); color: var(--slider-accent-main); background-color: var(--slider-accent-main); color: #fff;"
+          aria-label="Next Products"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-5 h-5">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
+          </svg>
+        </button>
+      </div>
+    </div>
+
+    <!-- Product Slider Track -->
+    {%- assign collection = collections[section.settings.collection] -%}
+    {%- assign limit = section.settings.products_to_show -%}
+
+    <div class="relative">
+      <div class="product-slider-track py-4">
+        {%- if collection != blank and collection.products.size > 0 -%}
+          {%- for product in collection.products limit: limit -%}
+            <div class="product-card-hover rounded-2xl border border-gray-100 shadow-sm bg-white p-4 transition-all duration-300 hover:shadow-lg product-card-inner">
+              
+              <!-- Image & Badge Container -->
+              <div class="relative aspect-square w-full bg-gray-50 rounded-xl overflow-hidden mb-4">
+                {%- if product.compare_at_price > product.price -%}
+                  <span class="absolute top-2 left-2 z-10 text-[10px] md:text-xs font-bold uppercase tracking-wider px-2.5 py-1 rounded-full text-white" style="background-color: var(--slider-accent-red);">
+                    {{ 'products.product.on_sale' | t | default: 'Sale' }}
+                  </span>
+                {%- endif -%}
+
+                {%- if product.featured_media != blank -%}
+                  <img 
+                    src="{{ product.featured_media | image_url: width: 600 }}" 
+                    alt="{{ product.featured_media.alt | escape }}"
+                    loading="lazy"
+                    class="product-card-image w-full h-full object-cover transition-transform duration-500 ease-out"
+                    width="600"
+                    height="600"
+                  >
+                {%- else -%}
+                  {{ 'product-1' | placeholder_svg_tag: 'w-full h-full object-cover bg-gray-200' }}
+                {%- endif -%}
+              </div>
+
+              <!-- Product Info -->
+              <div class="flex-grow flex flex-col">
+                {%- if section.settings.show_vendor and product.vendor != blank -%}
+                  <span class="text-xs uppercase tracking-wider text-gray-400 mb-1">{{ product.vendor }}</span>
+                {%- endif -%}
+                
+                <h3 class="text-sm md:text-base font-bold text-gray-900 line-clamp-2 mb-2 hover:underline">
+                  <a href="{{ product.url }}">{{ product.title }}</a>
+                </h3>
+
+                <!-- Price Block -->
+                <div class="flex items-center gap-2 mb-4 mt-auto">
+                  <span class="text-base font-extrabold" style="color: var(--slider-accent-ruby);">
+                    {{ product.price | money }}
+                  </span>
+                  {%- if product.compare_at_price > product.price -%}
+                    <span class="text-xs text-gray-400 line-through">
+                      {{ product.compare_at_price | money }}
+                    </span>
+                  {%- endif -%}
+                </div>
+              </div>
+
+              <!-- Add to Cart or View Details Action -->
+              <a 
+                href="{{ product.url }}" 
+                class="w-full text-center py-2.5 px-4 rounded-xl font-bold text-sm transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] shadow-md flex items-center justify-center gap-2"
+                style="background-color: var(--slider-accent-main); color: #ffffff; hover:background-color: var(--slider-accent-hover);"
+              >
+                <span>{{ 'products.product.choose_options' | t | default: 'View Details' }}</span>
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-4 h-4">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
+                </svg>
+              </a>
+
+            </div>
+          {%- endfor -%}
+        {%- else -%}
+          <!-- Placeholder state for Customize Preview -->
+          {%- for i in (1..6) -%}
+            <div class="product-card-hover rounded-2xl border border-gray-100 shadow-sm bg-white p-4 product-card-inner">
+              <div class="relative aspect-square w-full bg-gray-100 rounded-xl overflow-hidden mb-4 flex items-center justify-center">
+                {{ 'product-' | append: i | placeholder_svg_tag: 'w-full h-full object-cover bg-gray-100' }}
+              </div>
+              <div class="flex-grow flex flex-col">
+                <span class="text-xs uppercase tracking-wider text-gray-400 mb-1">Brand Name</span>
+                <h3 class="text-sm md:text-base font-bold text-gray-900 mb-2">Example Product Title {{ i }}</h3>
+                <div class="flex items-center gap-2 mb-4 mt-auto">
+                  <span class="text-base font-extrabold" style="color: var(--slider-accent-ruby);">$99.00</span>
+                </div>
+              </div>
+              <button 
+                type="button"
+                class="w-full py-2.5 px-4 rounded-xl font-bold text-sm flex items-center justify-center gap-2"
+                style="background-color: var(--slider-accent-main); color: #ffffff;"
+              >
+                <span>View Details</span>
+              </button>
+            </div>
+          {%- endfor -%}
+        {%- endif -%}
+      </div>
+    </div>
+
+    <!-- Indicator Dots (Slider Dots) -->
+    <div class="flex justify-center gap-2 mt-8 slider-dots-container">
+      <!-- Dots injected via Slick -->
+    </div>
+
+  </div>
+</section>
+
+<script>
+  (function() {
+    function initSlider(sectionContainer) {
+      if (!sectionContainer) return;
+
+      const $track = jQuery(sectionContainer).find('.product-slider-track');
+      const $prevBtn = jQuery(sectionContainer).find('.prev-btn');
+      const $nextBtn = jQuery(sectionContainer).find('.next-btn');
+      const $dotsContainer = jQuery(sectionContainer).find('.slider-dots-container');
+
+      if ($track.length === 0) return;
+
+      // Clean up previous slick instance if exists
+      if ($track.hasClass('slick-initialized')) {
+        try {
+          $track.slick('unslick');
+        } catch(e) {
+          console.warn('Slick unslick failed:', e);
+        }
+      }
+
+      // Initialize Slick
+      $track.slick({
+        slidesToShow: {{ section.settings.slides_to_show_desktop | default: 4 }},
+        slidesToScroll: 1,
+        infinite: false,
+        arrows: false,
+        dots: true,
+        appendDots: $dotsContainer,
+        responsive: [
+          {
+            breakpoint: 1200,
+            settings: {
+              slidesToShow: {{ section.settings.slides_to_show_desktop | minus: 1 | at_least: 2 | default: 3 }},
+              slidesToScroll: 1
+            }
+          },
+          {
+            breakpoint: 768,
+            settings: {
+              slidesToShow: {{ section.settings.slides_to_show_mobile | plus: 1 | at_most: 3 | default: 2 }},
+              slidesToScroll: 1
+            }
+          },
+          {
+            breakpoint: 480,
+            settings: {
+              slidesToShow: {{ section.settings.slides_to_show_mobile | default: 1 }},
+              slidesToScroll: 1,
+              centerMode: true,
+              centerPadding: '40px'
+            }
+          }
+        ]
+      });
+
+      // Update button states
+      const updateButtons = () => {
+        const slickInstance = $track.slick('getSlick');
+        const currentSlide = slickInstance.currentSlide;
+        const totalSlides = slickInstance.slideCount;
+        const slidesToShow = slickInstance.options.slidesToShow;
+
+        $prevBtn.prop('disabled', currentSlide === 0);
+        $nextBtn.prop('disabled', currentSlide >= totalSlides - slidesToShow);
+      };
+
+      // Listen for slick slide change
+      $track.on('afterChange', function(event, slick, currentSlide) {
+        updateButtons();
+      });
+
+      // Navigation clicks
+      $prevBtn.on('click', () => {
+        $track.slick('slickPrev');
+      });
+
+      $nextBtn.on('click', () => {
+        $track.slick('slickNext');
+      });
+
+      // Run button status check
+      updateButtons();
+
+      // Clean up event listener when section unloads
+      sectionContainer.addEventListener('slider:destroy', () => {
+        if ($track.hasClass('slick-initialized')) {
+          $track.slick('unslick');
+        }
+      });
+    }
+
+    // Safely check and load
+    function checkAndInit() {
+      if (window.jQuery && jQuery.fn.slick) {
+        const sectionId = 'shopify-section-{{ section.id }}';
+        const sectionContainer = document.getElementById(sectionId);
+        initSlider(sectionContainer);
+      } else {
+        setTimeout(checkAndInit, 50);
+      }
+    }
+
+    // Initialize on page load
+    document.addEventListener('DOMContentLoaded', checkAndInit);
+
+    // Shopify Design Mode integration
+    document.addEventListener('shopify:section:load', (event) => {
+      if (event.detail.sectionId === '{{ section.id }}') {
+        const sectionContainer = document.getElementById('shopify-section-' + event.detail.sectionId);
+        if (sectionContainer) {
+          if (window.jQuery && jQuery.fn.slick) {
+            initSlider(sectionContainer);
+          } else {
+            checkAndInit();
+          }
+        }
+      }
+    });
+
+    document.addEventListener('shopify:section:unload', (event) => {
+      if (event.detail.sectionId === '{{ section.id }}') {
+        const sectionContainer = document.getElementById('shopify-section-' + event.detail.sectionId);
+        if (sectionContainer) {
+          sectionContainer.dispatchEvent(new CustomEvent('slider:destroy'));
+        }
+      }
+    });
+  })();
+</script>
+
+{% schema %}
+{
+  "name": "Product Slider Premium",
+  "settings": [
+    {
+      "type": "text",
+      "id": "title",
+      "label": "Heading",
+      "default": "Trending Products"
+    },
+    {
+      "type": "text",
+      "id": "subtitle",
+      "label": "Subheading",
+      "default": "MUST-HAVES THIS WEEK"
+    },
+    {
+      "type": "collection",
+      "id": "collection",
+      "label": "Category / Collection"
+    },
+    {
+      "type": "range",
+      "id": "products_to_show",
+      "min": 4,
+      "max": 16,
+      "step": 1,
+      "default": 8,
+      "label": "Maximum products to show"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_vendor",
+      "label": "Show product vendor",
+      "default": true
+    },
+    {
+      "type": "header",
+      "content": "Slider Layout"
+    },
+    {
+      "type": "range",
+      "id": "slides_to_show_desktop",
+      "min": 3,
+      "max": 6,
+      "step": 1,
+      "default": 4,
+      "label": "Slides to show (Desktop)"
+    },
+    {
+      "type": "range",
+      "id": "slides_to_show_mobile",
+      "min": 1,
+      "max": 3,
+      "step": 1,
+      "default": 1,
+      "label": "Slides to show (Mobile)"
+    },
+    {
+      "type": "range",
+      "id": "card_gap",
+      "min": 8,
+      "max": 40,
+      "step": 4,
+      "default": 16,
+      "unit": "px",
+      "label": "Gap between slides"
+    },
+    {
+      "type": "header",
+      "content": "Palette Customization"
+    },
+    {
+      "type": "color",
+      "id": "bg_color",
+      "label": "Background Color",
+      "default": "#ffffff"
+    },
+    {
+      "type": "color",
+      "id": "text_color",
+      "label": "Text Color",
+      "default": "#101828"
+    },
+    {
+      "type": "color",
+      "id": "accent_main_color",
+      "label": "Primary Accent",
+      "default": "#003C40",
+      "info": "Used for main buttons and primary themes (e.g. Teal/Dark Blue)"
+    },
+    {
+      "type": "color",
+      "id": "accent_hover_color",
+      "label": "Secondary Accent / Hover",
+      "default": "#59B5DD",
+      "info": "Used for hover borders, subheadings, etc. (e.g. Light Blue)"
+    }
+  ],
+  "presets": [
+    {
+      "name": "Product Slider Premium",
+      "settings": {
+        "title": "New Arrivals",
+        "subtitle": "Discover our collection",
+        "accent_main_color": "#003C40",
+        "accent_hover_color": "#59B5DD"
+      }
+    }
+  ]
+}
+{% endschema %}
