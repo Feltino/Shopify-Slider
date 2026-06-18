@@ -1,0 +1,595 @@
+{% comment %}
+  Product Storytelling Section (Apple-style Scroll Section)
+  Combines modern Tailwind CSS styling with dynamic scroll-driven animation.
+  As you scroll, images cross-fade/scale, text slides in/out, and specs stagger-animate.
+{% endcomment %}
+
+<!-- Load Tailwind CSS CDN and Configure Palette -->
+<script src="https://cdn.tailwindcss.com" defer></script>
+<script>
+  window.addEventListener('DOMContentLoaded', () => {
+    if (window.tailwind) {
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              storyBg: '{{ section.settings.bg_color }}',
+              storyText: '{{ section.settings.text_color }}',
+              storyAccent: '{{ section.settings.accent_color }}',
+              storyAccentHover: '{{ section.settings.accent_hover_color }}',
+            }
+          }
+        }
+      };
+    }
+  });
+</script>
+
+{%- style -%}
+  #shopify-section-{{ section.id }} {
+    background-color: {{ section.settings.bg_color }};
+    color: {{ section.settings.text_color }};
+  }
+
+  /* Transition for media/photo changes */
+  .storytelling-media-item {
+    transition: opacity 0.8s cubic-bezier(0.25, 1, 0.5, 1), 
+                transform 1.2s cubic-bezier(0.25, 1, 0.5, 1);
+  }
+
+  /* Text & Elements transition effects */
+  .storytelling-text-block {
+    transition: opacity 0.6s cubic-bezier(0.25, 1, 0.5, 1), 
+                transform 0.6s cubic-bezier(0.25, 1, 0.5, 1), 
+                filter 0.6s cubic-bezier(0.25, 1, 0.5, 1);
+  }
+
+  /* Active states transition definitions */
+  .storytelling-slide.is-upcoming .storytelling-text-block {
+    opacity: 0;
+    transform: translateY(60px);
+    filter: blur(8px);
+    pointer-events: none;
+  }
+
+  .storytelling-slide.is-active .storytelling-text-block {
+    opacity: 1;
+    transform: translateY(0);
+    filter: blur(0);
+    pointer-events: auto;
+  }
+
+  .storytelling-slide.is-passed .storytelling-text-block {
+    opacity: 0;
+    transform: translateY(-60px);
+    filter: blur(8px);
+    pointer-events: none;
+  }
+
+  /* Staggered specs load transitions */
+  .spec-badge {
+    transition: opacity 0.5s cubic-bezier(0.25, 1, 0.5, 1), 
+                transform 0.5s cubic-bezier(0.25, 1, 0.5, 1);
+  }
+
+  .storytelling-slide.is-upcoming .spec-badge {
+    opacity: 0;
+    transform: translateY(20px) scale(0.95);
+  }
+
+  .storytelling-slide.is-passed .spec-badge {
+    opacity: 0;
+    transform: translateY(-20px) scale(0.95);
+  }
+
+  .storytelling-slide.is-active .spec-badge {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+
+  /* Generate custom staggered delays */
+  .storytelling-slide.is-active .spec-badge-0 { transition-delay: 200ms; }
+  .storytelling-slide.is-active .spec-badge-1 { transition-delay: 350ms; }
+  .storytelling-slide.is-active .spec-badge-2 { transition-delay: 500ms; }
+  .storytelling-slide.is-active .spec-badge-3 { transition-delay: 650ms; }
+
+  /* Premium scrollbar/progress marker */
+  .progress-line-inner {
+    transition: height 0.1s ease-out;
+  }
+
+{%- endstyle -%}
+
+{%- assign blocks_size = section.blocks.size -%}
+{%- assign section_height_multiplier = blocks_size | default: 1 -%}
+
+<!-- Scroll Track (Large Height to Allow Natural Scroll Progress) -->
+<section 
+  id="Storytelling-{{ section.id }}" 
+  class="relative w-full overflow-visible"
+  style="height: {{ section_height_multiplier | times: 100 }}vh;"
+  data-blocks-count="{{ blocks_size }}"
+>
+  <!-- Sticky Viewport Wrapper -->
+  <div class="storytelling-sticky-container sticky top-0 left-0 w-full h-screen overflow-hidden flex flex-col md:flex-row">
+    
+    {%- if section.settings.layout == 'media_left' -%}
+      {%- assign media_order = 'order-1 md:order-1' -%}
+      {%- assign content_order = 'order-2 md:order-2' -%}
+    {%- else -%}
+      {%- assign media_order = 'order-1 md:order-2' -%}
+      {%- assign content_order = 'order-2 md:order-1' -%}
+    {%- endif -%}
+
+    <!-- Visual / Media Column -->
+    <div class="relative w-full h-[45vh] md:h-full md:w-1/2 bg-black/10 overflow-hidden {{ media_order }}">
+      {%- if blocks_size > 0 -%}
+        {%- for block in section.blocks -%}
+          <div 
+            class="storytelling-media-item absolute inset-0 w-full h-full flex items-center justify-center pointer-events-none"
+            data-index="{{ forloop.index0 }}"
+            style="
+              opacity: {% if forloop.first %}1{% else %}0{% endif %};
+              transform: {% if forloop.first %}scale(1){% else %}scale(1.08){% endif %};
+              z-index: {{ 10 | minus: forloop.index0 }};
+            "
+            {{ block.shopify_attributes }}
+          >
+            <!-- Overlay and Gradient shading for premium look -->
+            <div class="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-black/20 z-10"></div>
+            
+            {%- if block.settings.image != blank -%}
+              <img 
+                src="{{ block.settings.image | image_url: width: 1920 }}" 
+                alt="{{ block.settings.image.alt | default: block.settings.title | escape }}"
+                class="w-full h-full object-cover"
+                loading="lazy"
+                width="1920"
+                height="1080"
+              >
+            {%- else -%}
+              <!-- Beautiful placeholder SVG based on slide index -->
+              {%- assign placeholder_index = forloop.index | at_most: 6 | default: 1 -%}
+              {{ 'lifestyle-' | append: placeholder_index | placeholder_svg_tag: 'w-full h-full object-cover opacity-80 bg-neutral-900' }}
+            {%- endif -%}
+          </div>
+        {%- endfor -%}
+      {%- else -%}
+        <!-- No blocks fallback -->
+        <div class="absolute inset-0 w-full h-full flex items-center justify-center bg-neutral-900 text-neutral-400">
+          {{ 'lifestyle-1' | placeholder_svg_tag: 'w-full h-full object-cover opacity-60' }}
+        </div>
+      {%- endif -%}
+    </div>
+
+    <!-- Content Column -->
+    <div class="relative w-full h-[55vh] md:h-full md:w-1/2 flex items-center justify-center px-6 md:px-16 lg:px-24 {{ content_order }}">
+      
+      <!-- Interactive Progress Overlay -->
+      <div class="absolute left-4 md:left-8 top-1/2 -translate-y-1/2 flex flex-col items-center gap-4 z-30">
+        <div class="w-[2px] h-32 bg-gray-300/30 rounded-full relative overflow-hidden">
+          <div class="progress-line-inner absolute top-0 left-0 w-full bg-gradient-to-b from-storyAccent to-storyAccentHover rounded-full" style="height: 0%;"></div>
+        </div>
+        <span class="text-[10px] font-mono tracking-widest opacity-60 uppercase text-center current-step-indicator">
+          01 / {{ blocks_size | default: 1 | prepend: '0' | slice: -2, 2 }}
+        </span>
+      </div>
+
+      <!-- Slides Stack -->
+      <div class="relative w-full max-w-lg h-full flex items-center">
+        {%- if blocks_size > 0 -%}
+          {%- for block in section.blocks -%}
+            <div 
+              class="storytelling-slide absolute inset-x-0 w-full flex flex-col justify-center transition-all duration-500 {% if forloop.first %}is-active{% else %}is-upcoming{% endif %}"
+              data-index="{{ forloop.index0 }}"
+              style="
+                pointer-events: {% if forloop.first %}auto{% else %}none{% endif %};
+              "
+            >
+              <div class="storytelling-text-block">
+                {%- if block.settings.subtitle != blank -%}
+                  <span class="text-xs md:text-sm font-bold tracking-widest uppercase mb-2 md:mb-3 block" style="color: var(--slider-accent-hover, {{ section.settings.accent_hover_color }});">
+                    {{ block.settings.subtitle }}
+                  </span>
+                {%- endif -%}
+                
+                {%- if block.settings.title != blank -%}
+                  <h2 class="text-2xl sm:text-3xl md:text-5xl font-extrabold tracking-tight leading-tight mb-3 md:mb-4 text-white">
+                    {{ block.settings.title }}
+                  </h2>
+                {%- endif -%}
+
+                {%- if block.settings.description != blank -%}
+                  <div class="text-xs sm:text-sm md:text-base text-gray-300 leading-relaxed mb-6 md:mb-8">
+                    {{ block.settings.description }}
+                  </div>
+                {%- endif -%}
+              </div>
+
+              <!-- Characteristics / Specs Grid -->
+              <div class="grid grid-cols-2 gap-3 sm:gap-4 storytelling-specs">
+                {%- if block.settings.spec_1_label != blank and block.settings.spec_1_value != blank -%}
+                  <div class="spec-badge spec-badge-0 bg-white/5 border border-white/10 backdrop-blur-md rounded-xl md:rounded-2xl p-3 md:p-4 flex flex-col">
+                    <span class="text-[10px] sm:text-xs text-gray-400 font-medium uppercase tracking-wider mb-0.5 md:mb-1">{{ block.settings.spec_1_label }}</span>
+                    <span class="text-sm sm:text-lg md:text-xl font-black text-white" style="color: var(--slider-accent-main, {{ section.settings.accent_color }});">{{ block.settings.spec_1_value }}</span>
+                  </div>
+                {%- endif -%}
+
+                {%- if block.settings.spec_2_label != blank and block.settings.spec_2_value != blank -%}
+                  <div class="spec-badge spec-badge-1 bg-white/5 border border-white/10 backdrop-blur-md rounded-xl md:rounded-2xl p-3 md:p-4 flex flex-col">
+                    <span class="text-[10px] sm:text-xs text-gray-400 font-medium uppercase tracking-wider mb-0.5 md:mb-1">{{ block.settings.spec_2_label }}</span>
+                    <span class="text-sm sm:text-lg md:text-xl font-black text-white" style="color: var(--slider-accent-main, {{ section.settings.accent_color }});">{{ block.settings.spec_2_value }}</span>
+                  </div>
+                {%- endif -%}
+
+                {%- if block.settings.spec_3_label != blank and block.settings.spec_3_value != blank -%}
+                  <div class="spec-badge spec-badge-2 bg-white/5 border border-white/10 backdrop-blur-md rounded-xl md:rounded-2xl p-3 md:p-4 flex flex-col">
+                    <span class="text-[10px] sm:text-xs text-gray-400 font-medium uppercase tracking-wider mb-0.5 md:mb-1">{{ block.settings.spec_3_label }}</span>
+                    <span class="text-sm sm:text-lg md:text-xl font-black text-white" style="color: var(--slider-accent-main, {{ section.settings.accent_color }});">{{ block.settings.spec_3_value }}</span>
+                  </div>
+                {%- endif -%}
+
+                {%- if block.settings.spec_4_label != blank and block.settings.spec_4_value != blank -%}
+                  <div class="spec-badge spec-badge-3 bg-white/5 border border-white/10 backdrop-blur-md rounded-xl md:rounded-2xl p-3 md:p-4 flex flex-col">
+                    <span class="text-[10px] sm:text-xs text-gray-400 font-medium uppercase tracking-wider mb-0.5 md:mb-1">{{ block.settings.spec_4_label }}</span>
+                    <span class="text-sm sm:text-lg md:text-xl font-black text-white" style="color: var(--slider-accent-main, {{ section.settings.accent_color }});">{{ block.settings.spec_4_value }}</span>
+                  </div>
+                {%- endif -%}
+              </div>
+
+            </div>
+          {%- endfor -%}
+        {%- else -%}
+          <!-- No blocks preview state -->
+          <div class="text-center w-full py-12">
+            <h3 class="text-xl font-bold">Add slides to start your story</h3>
+            <p class="text-sm text-gray-400 mt-2">Use the Customizer panel to add media, descriptions, and dynamic specs.</p>
+          </div>
+        {%- endif -%}
+      </div>
+
+    </div>
+  </section>
+
+  </div>
+</section>
+
+<!-- Scroll Controller Script -->
+<script>
+  (function() {
+    function initStorytelling(section) {
+      if (!section) return;
+
+      const blocksCount = parseInt(section.getAttribute('data-blocks-count') || 0);
+      if (blocksCount === 0) return;
+
+      const mediaItems = section.querySelectorAll('.storytelling-media-item');
+      const slides = section.querySelectorAll('.storytelling-slide');
+      const progressBar = section.querySelector('.progress-line-inner');
+      const stepIndicator = section.querySelector('.current-step-indicator');
+      function handleScroll() {
+        const rect = section.getBoundingClientRect();
+        const viewportHeight = window.innerHeight;
+        
+        // Calculate scroll progress percentage through the section
+        const totalScrollable = rect.height - viewportHeight;
+        if (totalScrollable <= 0) return;
+
+        const scrolled = -rect.top;
+        let progress = scrolled / totalScrollable;
+        progress = Math.max(0, Math.min(1, progress));
+
+        // Update progress bar UI
+        if (progressBar) {
+          progressBar.style.height = `${progress * 100}%`;
+        }
+
+        // Determine active index
+        let activeIndex = Math.floor(progress * blocksCount);
+        if (activeIndex >= blocksCount) {
+          activeIndex = blocksCount - 1;
+        }
+
+        // Update step indicator string
+        if (stepIndicator) {
+          const formattedIndex = String(activeIndex + 1).padStart(2, '0');
+          const formattedTotal = String(blocksCount).padStart(2, '0');
+          stepIndicator.textContent = `${formattedIndex} / ${formattedTotal}`;
+        }
+
+        // Animate Media & Slides
+        mediaItems.forEach((media, index) => {
+          if (index === activeIndex) {
+            media.style.opacity = '1';
+            media.style.transform = 'scale(1)';
+          } else {
+            media.style.opacity = '0';
+            // Simple scale effect based on whether it is past or upcoming
+            if (index < activeIndex) {
+              media.style.transform = 'scale(0.96)';
+            } else {
+              media.style.transform = 'scale(1.08)';
+            }
+          }
+        });
+
+        slides.forEach((slide, index) => {
+          slide.classList.remove('is-active', 'is-upcoming', 'is-passed');
+          if (index === activeIndex) {
+            slide.classList.add('is-active');
+            slide.style.pointerEvents = 'auto';
+          } else if (index < activeIndex) {
+            slide.classList.add('is-passed');
+            slide.style.pointerEvents = 'none';
+          } else {
+            slide.classList.add('is-upcoming');
+            slide.style.pointerEvents = 'none';
+          }
+        });
+      }
+
+      // Hook up window scroll event
+      window.addEventListener('scroll', handleScroll, { passive: true });
+      // Call once initially to set correct state
+      handleScroll();
+
+      // Store clean-up function on section element
+      section.addEventListener('storytelling:destroy', () => {
+        window.removeEventListener('scroll', handleScroll);
+      });
+    }
+
+    function checkAndInit() {
+      const sectionId = 'shopify-section-{{ section.id }}';
+      const sectionWrapper = document.getElementById(sectionId);
+      if (sectionWrapper) {
+        const storytellingSection = sectionWrapper.querySelector('[id^="Storytelling-"]');
+        if (storytellingSection) {
+          initStorytelling(storytellingSection);
+        }
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', checkAndInit);
+
+    // Shopify customizer design support
+    document.addEventListener('shopify:section:load', (event) => {
+      if (event.detail.sectionId === '{{ section.id }}') {
+        checkAndInit();
+      }
+    });
+
+    document.addEventListener('shopify:section:unload', (event) => {
+      if (event.detail.sectionId === '{{ section.id }}') {
+        const sectionWrapper = document.getElementById('shopify-section-' + event.detail.sectionId);
+        if (sectionWrapper) {
+          const storytellingSection = sectionWrapper.querySelector('[id^="Storytelling-"]');
+          if (storytellingSection) {
+            storytellingSection.dispatchEvent(new CustomEvent('storytelling:destroy'));
+          }
+        }
+      }
+    });
+
+    // Handle block selects in Theme Editor to scroll immediately to the specific block state
+    document.addEventListener('shopify:block:select', (event) => {
+      if (event.detail.sectionId === '{{ section.id }}') {
+        const blockId = event.detail.blockId;
+        const selectedBlockElement = document.querySelector(`[data-shopify-editor-block*="${blockId}"]`);
+        if (selectedBlockElement) {
+          const sectionWrapper = document.getElementById('shopify-section-{{ section.id }}');
+          const storytellingSection = sectionWrapper.querySelector('[id^="Storytelling-"]');
+          if (storytellingSection) {
+            const mediaItems = storytellingSection.querySelectorAll('.storytelling-media-item');
+            const slides = storytellingSection.querySelectorAll('.storytelling-slide');
+            const blockIndex = parseInt(selectedBlockElement.getAttribute('data-index') || 0);
+
+            // Trigger scroll/jump action if required, or simply force show that state
+            mediaItems.forEach((media, index) => {
+              media.style.opacity = index === blockIndex ? '1' : '0';
+              media.style.transform = index === blockIndex ? 'scale(1)' : 'scale(1.08)';
+            });
+
+            slides.forEach((slide, index) => {
+              slide.classList.remove('is-active', 'is-upcoming', 'is-passed');
+              if (index === blockIndex) {
+                slide.classList.add('is-active');
+              } else if (index < blockIndex) {
+                slide.classList.add('is-passed');
+              } else {
+                slide.classList.add('is-upcoming');
+              }
+            });
+          }
+        }
+      }
+    });
+  })();
+</script>
+
+{% schema %}
+{
+  "name": "Product Storytelling",
+  "settings": [
+    {
+      "type": "select",
+      "id": "layout",
+      "label": "Media Alignment (Desktop)",
+      "options": [
+        {
+          "value": "media_left",
+          "label": "Media Left / Text Right"
+        },
+        {
+          "value": "media_right",
+          "label": "Media Right / Text Left"
+        }
+      ],
+      "default": "media_left"
+    },
+    {
+      "type": "header",
+      "content": "Theme Styling"
+    },
+    {
+      "type": "color",
+      "id": "bg_color",
+      "label": "Background Color",
+      "default": "#09090b"
+    },
+    {
+      "type": "color",
+      "id": "text_color",
+      "label": "Text Color",
+      "default": "#f4f4f5"
+    },
+    {
+      "type": "color",
+      "id": "accent_color",
+      "label": "Accent / Highlight Color",
+      "default": "#3b82f6"
+    },
+    {
+      "type": "color",
+      "id": "accent_hover_color",
+      "label": "Secondary Accent Color",
+      "default": "#60a5fa"
+    }
+  ],
+  "blocks": [
+    {
+      "type": "slide",
+      "name": "Story Slide",
+      "settings": [
+        {
+          "type": "image_picker",
+          "id": "image",
+          "label": "Slide Image"
+        },
+        {
+          "type": "text",
+          "id": "subtitle",
+          "label": "Subtitle",
+          "default": "NEXT-GEN DESIGN"
+        },
+        {
+          "type": "text",
+          "id": "title",
+          "label": "Title",
+          "default": "Aerospace-grade durability."
+        },
+        {
+          "type": "richtext",
+          "id": "description",
+          "label": "Description",
+          "default": "<p>Crafted from premium alloys for the perfect blend of structural integrity and lightweight elegance.</p>"
+        },
+        {
+          "type": "header",
+          "content": "Characteristic 1"
+        },
+        {
+          "type": "text",
+          "id": "spec_1_label",
+          "label": "Label",
+          "default": "Durability"
+        },
+        {
+          "type": "text",
+          "id": "spec_1_value",
+          "label": "Value",
+          "default": "Titanium Build"
+        },
+        {
+          "type": "header",
+          "content": "Characteristic 2"
+        },
+        {
+          "type": "text",
+          "id": "spec_2_label",
+          "label": "Label",
+          "default": "Weight"
+        },
+        {
+          "type": "text",
+          "id": "spec_2_value",
+          "label": "Value",
+          "default": "Only 187g"
+        },
+        {
+          "type": "header",
+          "content": "Characteristic 3"
+        },
+        {
+          "type": "text",
+          "id": "spec_3_label",
+          "label": "Label",
+          "default": "Finish"
+        },
+        {
+          "type": "text",
+          "id": "spec_3_value",
+          "label": "Value",
+          "default": "Satin Brushed"
+        },
+        {
+          "type": "header",
+          "content": "Characteristic 4"
+        },
+        {
+          "type": "text",
+          "id": "spec_4_label",
+          "label": "Label",
+          "default": "Colors"
+        },
+        {
+          "type": "text",
+          "id": "spec_4_value",
+          "label": "Value",
+          "default": "4 Options"
+        }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "Product Storytelling",
+      "blocks": [
+        {
+          "type": "slide",
+          "settings": {
+            "title": "Designed to turn heads.",
+            "subtitle": "STUNNING AESTHETICS",
+            "spec_1_label": "Design",
+            "spec_1_value": "Minimalist",
+            "spec_2_label": "Award",
+            "spec_2_value": "Red Dot 2026"
+          }
+        },
+        {
+          "type": "slide",
+          "settings": {
+            "title": "Power meets efficiency.",
+            "subtitle": "BATTERY LIFE",
+            "spec_1_label": "Active Time",
+            "spec_1_value": "Up to 24 hrs",
+            "spec_2_label": "Charge Time",
+            "spec_2_value": "Fast (30m)"
+          }
+        },
+        {
+          "type": "slide",
+          "settings": {
+            "title": "Engineered for speed.",
+            "subtitle": "PERFORMANCE",
+            "spec_1_label": "Processor",
+            "spec_1_value": "NextGen Max",
+            "spec_2_label": "Cores",
+            "spec_2_value": "12-Core GPU"
+          }
+        }
+      ]
+    }
+  ]
+}
+{% endschema %}
